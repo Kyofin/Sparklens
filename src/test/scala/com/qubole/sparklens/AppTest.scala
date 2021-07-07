@@ -1,9 +1,10 @@
 package com.qubole.sparklens
 
 import org.apache.spark.{SparkConf, SparkContext}
+import org.scalatest.FunSuite
 
-object AppTest {
-  def main(args: Array[String]): Unit = {
+class AppTest extends FunSuite {
+  test("test use sparklens in spark app"){
     val sparkConf = new SparkConf().setMaster("local[1]").setAppName("te")
       .set("spark.extraListeners", "com.qubole.sparklens.QuboleJobListener")
     //    发送邮件
