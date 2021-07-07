@@ -2,27 +2,17 @@
 
 # README #
 
-Sparklens is a profiling tool for Spark with a built-in Spark scheduler simulator. Its primary goal is to make it easy 
-to understand the scalability limits of Spark applications. It helps in understanding how efficiently a given 
-Spark application is using the compute resources provided to it. Maybe your application will run faster with more 
-executors and may be it wont. Sparklens can answer this question by looking at a single run of your application. 
+Sparklens 是 Spark 的分析工具，带有内置的 Spark 调度程序模拟器。它的主要目标是让人们更容易理解 Spark 应用程序的可扩展性限制。它有助于了解给定的 Spark 应用程序使用提供给它的计算资源的效率如何。也许你的应用程序会随着更多的执行程序运行得更快，但也可能不会。Sparklens 可以通过查看应用程序的单次运行来回答这个问题。
 
-It helps you narrow down to few stages (or driver, or skew or lack of tasks) which are limiting your application 
-from scaling out and provides contextual information about what could be going wrong with these stages. Primarily 
-it helps you approach spark application tuning as a well defined method/process instead of something you learn by 
-trial and error, saving both developer and compute time. 
+它可以帮助您缩小到限制您的应用程序向外扩展的几个阶段（或驱动程序、倾斜或缺少任务），并提供有关这些阶段可能出现问题的上下文信息。主要是它可以帮助您将 Spark 应用程序调优视为一种明确定义的方法/过程，而不是您通过反复试验学习的东西，从而节省开发人员和计算时间。
 
 ## Sparklens Reporting as a Service
 
-http://sparklens.qubole.com is a reporting service built on top of Sparklens. This service was built to lower the pain of sharing and discussing Sparklens 
-output. Users can upload the Sparklens JSON file to this service and retrieve a global sharable 
-link. The link delivers the Sparklens report in an easy-to-consume HTML format with intuitive 
-charts and animations. It is also useful to have a link for easy reference for yourself, in case 
-some code changes result in lower utilization or make the application slower.
+[sparklens](http://sparklens.qubole.com) 是一个建立在 Sparklens 之上的报告服务。该服务旨在减轻分享和讨论 Sparklens 输出的痛苦。用户可以将 Sparklens JSON 文件上传到此服务并检索全局可共享链接。该链接以易于使用的 HTML 格式提供 Sparklens 报告，并带有直观的图表和动画。如果某些代码更改导致利用率降低或使应用程序变慢，则为自己提供一个易于参考的链接也很有用
 
 ## What does it report?
 
-* Estimated completion time and estimated cluster utilisation with different numbers of executors
+* 使用不同执行器数量的估计完成时间和估计集群利用率
  
  ```
  Executor count    31  ( 10%) estimated time 87m 29s and estimated cluster utilization 92.73%
@@ -31,11 +21,11 @@ some code changes result in lower utilization or make the application slower.
  Executor count   248  ( 80%) estimated time 16m 43s and estimated cluster utilization 60.65%
  Executor count   310  (100%) estimated time 14m 49s and estimated cluster utilization 54.73%
 ```
-Given a single run of a Spark application, Sparklens can estimate how your application will perform 
-given any arbitrary number of executors. This helps you understand the ROI on adding executors. 
+给定一次 Spark 应用程序的运行，Sparklens 可以估计您的应用程序在给定任意数量的执行器的情况下的执行情况。这有助于您了解添加执行程序的投资回报率。
 
-* Job/stage timeline which shows how the parallel stages were scheduled within a job. This makes it easy to visualise 
-the DAG with stage dependencies at the job level. 
+
+
+* Job/stage 时间线，显示如何在作业中安排并行阶段。这使得在作业级别可视化具有阶段依赖关系的 DAG 变得容易。
 
 ```
 07:05:27:666 JOB 151 started : duration 01m 39s 
@@ -94,7 +84,7 @@ Note: Apart from the console based report, you can also get an UI based report s
 
 Use the following arguments to `spark-submit` or `spark-shell`:
 ```
---packages qubole:sparklens:0.3.2-s_2.11
+--jars target/sparklens-0.3.2.jar
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 ```
 
@@ -103,7 +93,7 @@ Use the following arguments to `spark-submit` or `spark-shell`:
 You can choose not to run sparklens inside the app, but at a later time. Run your app as above 
 with additional configuration parameters:
 ```
---packages qubole:sparklens:0.3.2-s_2.11
+--jars target/sparklens-0.3.2.jar
 --conf spark.extraListeners=com.qubole.sparklens.QuboleJobListener
 --conf spark.sparklens.reporting.disabled=true
 ```
@@ -111,7 +101,7 @@ with additional configuration parameters:
 This will not run reporting, but instead create a Sparklens JSON file for the application which is 
 stored in the **spark.sparklens.data.dir** directory (by default, **/tmp/sparklens/**). Note that this will be stored on HDFS by default. To save this file to s3, please set **spark.sparklens.data.dir** to s3 path. This data file can now be used to run Sparklens reporting independently, using `spark-submit` command as follows:
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
+`./bin/spark-submit --jars target/sparklens-0.3.2.jar --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename>`
 
 `<filename>` should be replaced by the full path of sparklens json file. If the file is on s3 use the full s3 path. For files on local file system, use file:// prefix with the local file location. HDFS is supported as well. 
 
@@ -124,11 +114,12 @@ running via `sparklens-json-file` above) with another option specifying that is 
 event history file. This file can be in any of the formats the event history files supports, i.e. **text, snappy, lz4 
 or lzf**. Note the extra `source=history` parameter in this example:
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
+`./bin/spark-submit --jars target/sparklens-0.3.2.jar --class com.qubole.sparklens.app.ReporterApp qubole-dummy-arg <filename> source=history`
 
 It is also possible to convert an event history file to a Sparklens json file using the following command:
 
-`./bin/spark-submit --packages qubole:sparklens:0.3.2-s_2.11 --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
+`./bin/spark-submit --jars target/sparklens-0.3.2.jar
+ --class com.qubole.sparklens.app.EventHistoryToSparklensJson qubole-dummy-arg <srcDir> <targetDir>`
 
 EventHistoryToSparklensJson is designed to work on local file system only. Please make sure that the source and target directories are on local file system.
 
